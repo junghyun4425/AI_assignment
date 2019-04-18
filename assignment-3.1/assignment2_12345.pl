@@ -8,24 +8,31 @@ solve_task(Task,Cost):-
   query_world( agent_do_moves, [Agent,Path] ).
 
 
-children([G,_,P,RPath],[G1,H1,P1,[P1|RPath]],Task) :- search(P,P1,_,_), G1 is G + 1, heuristics(P1,H1,Task).
+% Find whether a position P is in the agenda
+in_list(P,[[_,_,P,_]|_]).
+in_list(P,[_|T]) :- in_list(P,T).
+
+children([G,_,P,RPath],[G1,H1,P1,[P1|RPath]],Task,Agenda) :- search(P,P1,_,_), G1 is G + 1,
+                                                      heuristics(P1,H1,Task),
+                                                      not(in_list(P1,Agenda)).
 
 target(T,go(Exit)) :- T = Exit.
 target(T,find(O)) :- query_world( check_pos, [T, O]). % It does not work, cannot find the T
 
-heuristics(p(X,Y),H1,Task) :- target(Target,Task),map_distance(p(X,Y),Target,H1).
+heuristics(P,H1,go(Exit)) :- map_distance(P,Exit,H1).
+heuristics(_,0,find(_)).
 
-findMin([H|T],Result) :- findMinAux(H,[],T,Result).
-findMinAux(Smallest,Seen,[],[Smallest|Seen]).
-findMinAux(Smallest,Seen,[H|T],Result) :- lt(H,Smallest),!,findMinAux(H,[Smallest|Seen],T,Result) ; findMinAux(Smallest,[H|Seen],T,Result).
+find_min([H|T],Result) :- find_min_aux(H,[],T,Result).
+find_min_aux(Smallest,Seen,[],[Smallest|Seen]).
+find_min_aux(Smallest,Seen,[H|T],Result) :- lt(H,Smallest),!,find_min_aux(H,[Smallest|Seen],T,Result) ; find_min_aux(Smallest,[H|Seen],T,Result).
 lt([G1,H1,p(X1,Y1),_],[G2,H2,p(X2,Y2),_]) :- F1 is G1 + H1, F2 is G2 + H2, (F1 < F2 ; F1 = F2, X1 < X2 ; F1 = F2, X1 = X2, Y1 < Y2).
 
 solve_task_astar(Task,Agenda,RPath,[cost(Cost),depth(Cost)],NewPos) :-
-  findMin(Agenda,TopFirst),
+  find_min(Agenda,TopFirst),
   achieved(Task,TopFirst,RPath,Cost,NewPos).
 solve_task_astar(Task,Agenda,RR,Cost,NewPos) :-
-  findMin(Agenda,[M|T]),
-  (setof(Child,children(M,Child,Task),Children) -> append(Children,T,NewAgenda) ;
+  find_min(Agenda,[M|T]),
+  (setof(Child,children(M,Child,Task,T),Children) -> append(Children,T,NewAgenda) ;
   otherwise -> NewAgenda = T),
   solve_task_astar(Task,NewAgenda,RR,Cost,NewPos).
 
