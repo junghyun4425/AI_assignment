@@ -25,7 +25,7 @@ heuristics(_,0,find(_)).
 find_min([H|T],Result) :- find_min_aux(H,[],T,Result).
 find_min_aux(Smallest,Seen,[],[Smallest|Seen]).
 find_min_aux(Smallest,Seen,[H|T],Result) :- lt(H,Smallest),!,find_min_aux(H,[Smallest|Seen],T,Result) ; find_min_aux(Smallest,[H|Seen],T,Result).
-lt([G1,H1,p(X1,Y1),_],[G2,H2,p(X2,Y2),_]) :- F1 is G1 + H1, F2 is G2 + H2, (F1 < F2 ; F1 = F2, X1 < X2 ; F1 = F2, X1 = X2, Y1 < Y2).
+lt([G1,H1,_,_],[G2,H2,_,_]) :- F1 is G1 + H1, F2 is G2 + H2, F1 < F2.
 
 solve_task_astar(Task,Agenda,RPath,[cost(Cost),depth(Cost)],NewPos) :-
   find_min(Agenda,TopFirst),
