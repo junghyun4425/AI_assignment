@@ -27,10 +27,10 @@ find_identity_o(A):-
   query_world(agent_current_position,[Agent,P]),
   % Find and memorise stations and oracles
   memorise_stations(Stations,[],P),
-  write("Station Position: "), writeln(Stations).
+  write("Station Position: "), writeln(Stations),
   % Not works for orcles using astar(Stack is exceeded...)
-  % memorise_oracles(Oracles,[],P),
-  % write("Oracle Position: "), writeln(Oracles),
+  memorise_oracles(Oracles,[],P),
+  write("Oracle Position: "), writeln(Oracles).
 
   % Need to find identity (agent searches oracles directly).
 
@@ -38,7 +38,7 @@ memorise_stations(Stations,List,P):-
   (length(List,2) -> Stations = List).
 
 memorise_stations(Stations,List,P):-
-  solve_task_astar(find(c(C)),[[0,_,P,[P]]],_,Cost,NewPos),
+  solve_task_astar(find(c(C)),[[0,_,P,[P]]],R,Cost,NewPos),
   map_adjacent(NewPos,S_P,c(C)),
   \+ memberchk((S_P,c(C)),List),
   memorise_stations(Stations,[(S_P,c(C))|List],NewPos),!.
@@ -47,8 +47,7 @@ memorise_oracles(Oracles,List,P):-
   (length(List,10) -> Oracles = List).
 
 memorise_oracles(Oracles,List,P):-
-  Task = find(o(C)),
-  solve_task_astar(Task,[[0,_,P,[P]]],_,Cost,NewPos),
-  map_adjacent(NewPos,S_P,c(C)),
-  \+ memberchk((S_P,o(C)),List),
-  memorise_stations(Oracles,[(S_P,o(C))|List],NewPos),!.
+  solve_task_astar(find(o(O)),[[0,_,P,[P]]],R,Cost,NewPos),
+  map_adjacent(NewPos,S_P,o(O)),
+  \+ memberchk((S_P,o(O)),List),
+  memorise_stations(Oracles,[(S_P,o(O))|List],NewPos),!.
