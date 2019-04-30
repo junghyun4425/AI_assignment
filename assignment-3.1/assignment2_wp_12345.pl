@@ -48,6 +48,6 @@ memorise_oracles(Oracles,List,P):-
 
 memorise_oracles(Oracles,List,P):-
   solve_task_astar(find(o(O)),[[0,_,P,[P]]],R,Cost,NewPos),
-  map_adjacent(NewPos,S_P,o(O)),
-  \+ memberchk((S_P,o(O)),List),
-  memorise_stations(Oracles,[(S_P,o(O))|List],NewPos),!.
+  map_adjacent(NewPos,O_P,o(O)),
+  \+ memberchk((O_P,o(O)),List),
+  memorise_oracles(Oracles,[(O_P,o(O))|List],NewPos),!.
