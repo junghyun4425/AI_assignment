@@ -1,11 +1,25 @@
 candidate_number(12345).
 
+% distance(P,c(_),Cost) :- solve_task_astar(find(c(_)),[[0,_,P,[P]]],_,[cost(Cost),_],_).
+distance(P,_,35).
+
+top_up(S) :- my_agent(Agent),query_world( agent_topup_energy, [Agent,S] ).
+get_energy(E) :- my_agent(Agent),query_world( agent_current_energy, [Agent,E] ).
+
+recharge() :-      my_agent(Agent), query_world( agent_current_position, [Agent,P] ),
+                    solve_task_astar(find(c(S)),[[0,_,P,[P]]],R,_Cost,_NewPos),!,reverse(R,[_Init|Path]),
+                    query_world(agent_do_moves, [Agent,Path]), top_up(c(S)).
+
 solve_task(Task,Cost):-
   my_agent(Agent),
   query_world( agent_current_position, [Agent,P] ),
-  solve_task_astar(Task,[[0,_,P,[P]]],R,Cost,_NewPos),!,  % prune choice point for efficiency
-  reverse(R,[_Init|Path]),
-  query_world( agent_do_moves, [Agent,Path] ).
+  solve_task_astar(Task,[[0,_,P,[P]]],R,Cost,NewPos),!,  % prune choice point for efficiency
+  distance(NewPos,_Station,D), get_energy(Energy), Cost = [cost(C),_],
+  ( Energy < D + C ->   recharge(), solve_task(Task,Cost)
+                        ;
+    otherwise ->        reverse(R,[_Init|Path]),
+                        query_world( agent_do_moves, [Agent,Path])
+  ).
 
 
 % Find whether a position P is in the agenda
