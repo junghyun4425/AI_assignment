@@ -13,8 +13,8 @@ solve_task(Task,Cost):-
   my_agent(Agent),
   query_world( agent_current_position, [Agent,P] ),
   solve_task_astar(Task,[[0,_,P,[P]]],R,Cost,_NewPos,[]),!,  % prune choice point for efficiency
-  get_energy(Energy), Cost = [cost(C)|_],
-  (Energy - C < 35 ->  recharge,
+  get_energy(Energy), Cost = [cost(C)|_], game_predicates:internal_grid_size(N), Threshold is 2*N,
+  (Energy - C < Threshold ->  recharge,
                           solve_task(Task,_Cost)
   ;
   otherwise ->  reverse(R,[_Init|Path]),
@@ -25,8 +25,8 @@ solve_task(Task,Cost,Banned):-
   my_agent(Agent),
   query_world( agent_current_position, [Agent,P] ),
   solve_task_astar(Task,[[0,_,P,[P]]],R,Cost,_NewPos,Banned),!,  % prune choice point for efficiency
-  get_energy(Energy), Cost = [cost(C)|_],
-  (Energy - C < 35 ->  recharge,
+  get_energy(Energy), Cost = [cost(C)|_], game_predicates:internal_grid_size(N), Threshold is 2*N,
+  (Energy - C < Threshold ->  recharge,
                           solve_task(Task,_Cost)
   ;
   otherwise ->  reverse(R,[_Init|Path]),
@@ -36,9 +36,6 @@ solve_task(Task,Cost,Banned):-
 children([G,_,P,RPath],[G1,H1,P1,[P1|RPath]],Task,Agenda) :- search(P,P1,_,_), G1 is G + 1,
                                                       heuristics(P1,H1,Task),
                                                       not(member([_,_,P1,_],Agenda)).
-
-target(T,go(Exit)) :- T = Exit.
-target(T,find(O)) :- query_world( check_pos, [T, O]). % It does not work, cannot find the T
 
 heuristics(P,H1,go(Exit)) :- map_distance(P,Exit,H1).
 heuristics(_,0,find(_)).
