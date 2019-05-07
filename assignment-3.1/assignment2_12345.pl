@@ -11,21 +11,23 @@ recharge :-   my_agent(Agent),
 
 solve_task(Task,Cost):-
   my_agent(Agent),
+  repeat,
   query_world( agent_current_position, [Agent,P] ),
   solve_task_astar(Task,[[0,_,P,[P]]],R,Cost,_NewPos,[]),!,  % prune choice point for efficiency
-  get_energy(Energy), Cost = [cost(C)|_], game_predicates:internal_grid_size(N), Threshold is 2*N,
+  get_energy(Energy), Cost = [cost(C)|_], Threshold = 40,
   (Energy - C < Threshold ->  recharge,
                           solve_task(Task,_Cost)
   ;
   otherwise ->  reverse(R,[_Init|Path]),
-                query_world( agent_do_moves, [Agent,Path] )
+                query_world( agent_do_moves, [Agent,Path])
   ).
 
 solve_task(Task,Cost,Banned):-
   my_agent(Agent),
+  repeat,
   query_world( agent_current_position, [Agent,P] ),
   solve_task_astar(Task,[[0,_,P,[P]]],R,Cost,_NewPos,Banned),!,  % prune choice point for efficiency
-  get_energy(Energy), Cost = [cost(C)|_], game_predicates:internal_grid_size(N), Threshold is 2*N,
+  get_energy(Energy), Cost = [cost(C)|_], Threshold = 40,
   (Energy - C < Threshold ->  recharge,
                           solve_task(Task,_Cost)
   ;
