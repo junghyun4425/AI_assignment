@@ -20,6 +20,9 @@ iterate(Actors,A,Links) :-
 find_identity_2(A):-
   findall(Actor,actor(Actor),Actors), iterate(Actors,A,[]),!.
 
+get_actors(A, Actors):-
+  findall(Actor,actor(Actor),Actors), iterate(Actors,A,[]),!.
+
 find_identity_o(A):-
   my_agent(Agent),
   query_world(agent_current_position,[Agent,P]),
@@ -30,6 +33,7 @@ find_identity_o(A):-
   write("Oracles: "), writeln(Oracles),
   % Need to generate actor list first.
   % generate_list()...
+  % get_actors(A, Actors),
   checkout_oracles(A,Agent,Actors,Stations,Oracles,[]).
 
 % memorise stations & oracles
