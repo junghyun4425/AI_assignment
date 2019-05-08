@@ -6,7 +6,7 @@ find_identity(A):-
   ; otherwise -> find_identity_o(A)
   ).
 
-% all links associated to an actor
+% true if actor A has all Links (if Links is subset of the links of that actor)
 possible(Links,A) :- actor(A), wp:actor_links(A,L), forall(member(Link,Links),member(Link,L)).
 
 % finds secret identity with the links provided by comparing and eliminating
@@ -20,17 +20,19 @@ iterate(_,A,Links) :-
 find_identity_2(A):-
   findall(Actor,actor(Actor),Actors), iterate(Actors,A,[]),!.
 
-iterate_o([A],A,_,_,_).
-iterate_o(Actors,A,Links,N,Visited) :-
+% If only one actor is possible, we are finished
+iterate_o([A],A,_,_).
+
+% Find an oracle that has not been visited yet, query it, add the link, and proceed as in iterate
+iterate_o(_Actors,A,Links,Visited) :-
                           my_agent(Agent),
-                          query_world( agent_current_position, [Agent,P] ),
-                          N1 is N + 1,
                           solve_task(find(o(I)),_,Visited),
                           query_world(agent_ask_oracle, [Agent,o(I),link,L]),
                           (\+member(L,Links) -> append([L],Links,NewLinks) ; otherwise -> NewLinks = Links),
                           findall(Actor,possible(NewLinks,Actor),NewActors),
-                          iterate_o(NewActors,A,NewLinks,N1,[o(I)|Visited]).
+                          iterate_o(NewActors,A,NewLinks,[o(I)|Visited]).
 
+% Initialise iterations to find identity
 find_identity_o(A):-
   findall(Actor,actor(Actor),Actors),
-  iterate_o(Actors,A,[],0,[]).
+  iterate_o(Actors,A,[],[]).
