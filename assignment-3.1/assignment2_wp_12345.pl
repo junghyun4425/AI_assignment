@@ -1,29 +1,22 @@
-% candidate_number(12345).
+candidate_number(12345).
 
-% Find hidden identity by repeatedly calling agent_ask_oracle(oscar,o(1),link,L)
-% find_identity(-A)
+% find hidden identity
 find_identity(A):-
   (part_module(2)   -> find_identity_2(A)
   ; otherwise -> find_identity_o(A)
   ).
 
+% all links associated to an actor
 possible(Links,A) :- actor(A), wp:actor_links(A,L), forall(member(Link,Links),member(Link,L)).
 
+% finds secret identity with the links provided by comparing and eliminating
 iterate([A],A,_).
 iterate(_,A,Links) :-
       agent_ask_oracle(oscar,o(1),link,L),
       (\+member(L,Links) -> NewLinks = [L|Links] ; otherwise -> NewLinks = Links),
       findall(Actor,possible(NewLinks,Actor),NewActors), iterate(NewActors,A,NewLinks).
 
-iterate_o([A],A,_,_).
-iterate_o(Actors,A,Links,I) :-
-          solve_task(find(o(I)),_Cost),
-          game_predicates:agent_ask_oracle(oscar,o(I),link,L),
-          (not(member(L,Links)) -> NewLinks = [L|Links], findall(A,possible(NewLinks,A,Actors),NewActors)
-          ; otherwise -> NewLinks = Links, NewActors = Actors),
-          nI is I + 1, iterate_o(NewActors,A,NewLinks,nI).
-
-
+% deduces the secret identity
 find_identity_2(A):-
   findall(Actor,actor(Actor),Actors), iterate(Actors,A,[]),!.
 
